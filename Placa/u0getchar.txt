@@ -1,0 +1,154 @@
+ /* função para chamar o conversor do dado armazenado no buffer de 25 bytes no seu 
+   valor float correspondente e passar para a serial_queue da task e liberar a task. */
+void v_real();{
+if(serial_fila[posicao_a_att]>0)
+	  	{   
+		if(serial_queue[posicao_a_att].real)
+		 {//printk("tamanho: %d, dot: %d enter recebido... convertendo para FLOAT...\n", pos, dot);   
+			printk("FLOAT!\n");
+		     *serial_queue[posicao_a_att].real = StrToFloat(dado);
+      		printk("FLOAT enviado...\n");  
+		 }else{// OPA A TASK CORRENTE NÃO ESTÁ ESPERANDO UM FLOAT...
+			  if(serial_queue[posicao_a_att].inteiro)printk("A TASK ESTÁ ESPERANDO UM INTEIRO!\n");
+		        else if(serial_queue[posicao_a_att].string)printk("A TASK ESTÁ ESPERANDO UMA STRING!\n");
+		        else if(serial_queue[posicao_a_att].caracter)printk("A TASK ESTÁ ESPERANDO UM CARACTER!\n");
+			 pos=0; //zera posicionador na string dado[256]
+		      Nfloat=0;
+			 dot=0;
+			 V=.0;
+			 return(0);// SAI SEM LIBERAR A TASK
+		    }  
+		  Descriptors[serial_queue[posicao_a_att].tid].State=READY;
+		   InsertReadyList(serial_queue[posicao_a_att].tid);
+		    serial_fila[posicao_a_att] = 0;
+		     posicao_a_att++;
+	    	    if(posicao_a_att == MaxNumberTask) posicao_a_att = 0;  	
+		   pos=0; //zera posicionador na string dado[25]
+		  dot=0;//reseta posição do separador de casas decimais
+           V=0.0;
+		 }
+}
+ /* função para copiar a string armazenada no buffer de 25 bytes
+    e passar para a serial_queue da task e liberar a task. */
+void v_string(){
+		if(serial_fila[posicao_a_att]>0)
+	  	{ printk("STRING!\n"); printk("%d\n", Nfloat); 
+		if(serial_queue[posicao_a_att].string)
+		 {   
+		     strncpy(serial_queue[posicao_a_att].string, dado, pos+1);
+			printk("STRING enviada...%s\n",dado);
+		 }else{// OPA A TASK CORRENTE NÃO ESTÁ ESPERANDO UMA STRING...
+			  if(serial_queue[posicao_a_att].inteiro)printk("A TASK ESTÁ ESPERANDO UM INTEIRO!\n");
+		        else if(serial_queue[posicao_a_att].real)printk("A TASK ESTÁ ESPERANDO UM FLOAT!\n");
+		        else if(serial_queue[posicao_a_att].caracter)printk("A TASK ESTÁ ESPERANDO UM CARACTER!\n");
+			 pos=0; //zera posicionador na string dado[256]
+		      Nfloat=0;
+			 dot=0;
+			 V=.0;
+			 return(0);// SAI SEM LIBERAR A TASK
+		    }
+		 Descriptors[serial_queue[posicao_a_att].tid].State=READY;
+	    	  InsertReadyList(serial_queue[posicao_a_att].tid);
+	    	   serial_fila[posicao_a_att] = 0;
+	    	    posicao_a_att++;
+	    	   if(posicao_a_att == MaxNumberTask) posicao_a_att = 0;  
+		  pos=0; //zera posicionador na string dado[25]
+ 		 Nfloat=0;
+		}
+}
+ /* função para chamar o conversor do dado armazenado no buffer de 25 bytes no seu 
+   valor inteiro correspondente e passar para a serial_queue da task e liberar a task. */
+void v_inteiro(){
+		if(serial_fila[posicao_a_att]>0)
+	  	{ 
+		if(serial_queue[posicao_a_att].inteiro)
+		 {   printk("INTEIRO!\n");
+			*serial_queue[posicao_a_att].inteiro = StrToInt(dado);
+			printk("INTEIRO enviado...\n");
+		 }else{// OPA A TASK CORRENTE NÃO ESTÁ ESPERANDO UM INTEIRO... 
+			  if(serial_queue[posicao_a_att].string )printk("A TASK ESTÁ ESPERANDO UMA STRING!\n");
+		        else if(serial_queue[posicao_a_att].real)printk("A TASK ESTÁ ESPERANDO UM FLOAT!\n");
+		        else if(serial_queue[posicao_a_att].caracter)printk("A TASK ESTÁ ESPERANDO UM CARACTER!\n");
+			 pos=0; //zera posicionador na string dado[25]
+		      Nfloat=0;
+			 dot=0;
+			 V=.0;
+			 return(0);// SAI SEM LIBERAR A TASK
+		    }
+		  Descriptors[serial_queue[posicao_a_att].tid].State=READY;
+	    	   InsertReadyList(serial_queue[posicao_a_att].tid);
+	    	    serial_fila[posicao_a_att] = 0;
+	    	   posicao_a_att++;
+	    	  if(posicao_a_att == MaxNumberTask) posicao_a_att = 0;  
+		 pos=0; //zera posicionador na string dado[25]
+		}
+}
+ /* função para copiar a caracter armazenada no buffer de 25 bytes
+    e passar para a serial_queue da task e liberar a task. */
+void v_caracter(){
+		if(serial_fila[posicao_a_att]>0)
+	 	{ 
+		if(serial_queue[posicao_a_att].caracter)
+		 {   
+		 printk("CARACTER!\n");
+			*serial_queue[posicao_a_att].caracter = dado[0];
+			printk("caracter enviado...\n");
+		 }else{// OPA A TASK CORRENTE NÃO ESTÁ ESPERANDO UM INTEIRO... 
+		 if(serial_queue[posicao_a_att].string )printk("A TASK ESTÁ ESPERANDO UMA STRING!\n");
+             else if(serial_queue[posicao_a_att].real)printk("A TASK ESTÁ ESPERANDO UM FLOAT!\n");
+           else if(serial_queue[posicao_a_att].inteiro)printk("A TASK ESTÁ ESPERANDO UM INTEIRO!\n");
+			 pos=0; //zera posicionador na string dado[25]
+		      Nfloat=0;
+			 dot=0;
+			 V=.0;
+			 return(0);// SAI SEM LIBERAR A TASK
+		    }
+		  Descriptors[serial_queue[posicao_a_att].tid].State=READY;
+	    	   InsertReadyList(serial_queue[posicao_a_att].tid);
+	    	    serial_fila[posicao_a_att] = 0;
+	    	   posicao_a_att++;
+	    	  if(posicao_a_att == MaxNumberTask) posicao_a_att = 0;  
+		 pos=0; //zera posicionador na string dado[25]
+	    }
+}
+/* Função que recebe o  dado byte por byte  e armazena no buffer de 25 bytes,  se for enviado mais de 25
+   caracteres sem ser enviado um enter para dizer que o dado está pronto para ser convertido ou copiado,
+   uma menssagem é emitida avisando para pressionar <ENTER>.*/
+int U0getchar(void)
+{ 
+  int i,c;
+  unsigned short Nfloat=0;
+  for(i=0;(U0LSR & 1) == 0;i++)
+  {
+    if(i==100);	/* Espera ate receber algo */
+    {
+      return 0;
+    }
+  } 
+  c=U0RBR; 
+
+  if(c =='\n'){//se apertou enter converte dado armazenado na variável dado[256]
+  dado[pos]='\0';//insere terminador da string
+  for(i=0; i<pos; i++)                                                      			    //se não for número ou uma vírgula 
+	if(!(dado[i]-0x030>=0 && dado[i]-0x030<=9 ) && dado[i] != ',') Nfloat++;//não será um float, sinaliza-se...
+	if(dado[0] == '-')Nfloat--;// se dado[0] é um sinal de menos pode ser que seja um número negativo então decrementa sinalizador
+/***********************************************************************************************************************/
+     if(!Nfloat && dot){//         ****SE ENTROU AQUI É PQ É UM VALOR REAL****	
+	v_real();}
+	else if(Nfloat>=1 && pos>1){//       ****SE ENTROU AQUI É PQ É UMA STRING****
+     v_string();}
+	else if(!Nfloat && !dot){//      ****SE ENTROU AQUI É PQ É UM VALOR INTEIRO****
+	v_inteiro();}
+	else if(pos==1){//         ****SE ENTROU AQUI É PQ É UM CHAR****
+	v_caracter();}
+	else{  //     ****SE NÃO CHEGOU UM '\n', VAI ARMAZENANDO NO VETOR DADO****     
+	 if (c == ',') dot = pos;// se chegou uma vírgula salva posição do separador decimal
+       if(pos <24){
+  	  dado[pos] = c; 
+	   pos++; //incrementa posição de inserção na string dado[25], serve tb como tamanho do dado "ok"
+		}else{
+			printk("Você digitou 24 caracteres, pressione ENTER para enviar.\n");	
+			}
+	}
+  }
+}/********************************* FIM DE U0getchar() *****************************************************/
